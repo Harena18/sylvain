@@ -1,6 +1,6 @@
 <?php
-$username = "root";
-$password = "";
+$username = 'root';
+$password = '';
 try {
     $pdo = new PDO(
         "mysql:host=localhost;dbname=gestion_clients;charset=utf8",
