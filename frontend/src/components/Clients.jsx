@@ -22,6 +22,26 @@ function Creations() {
         })();
     }, [refresh]);
 
+    const handleDeleteClient = async (id) => {
+        if (!confirm("Supprimer ce client ?")) return;
+        try {
+            const response = await fetch(url, {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+                body: `id=${encodeURIComponent(id)}`,
+            });
+            const data = await response.json();
+            if (data.status === "ok") {
+                // Retirer le client du state
+                setClients((prev) => prev.filter((c) => c.id !== id));
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
     return (
         <>
             <div className="px-5 py-12 rounded-2xl min-h-full">

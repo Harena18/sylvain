@@ -127,7 +127,6 @@ function Personalization() {
                 Personnalisations
             </h2>
 
-            {/* En-têtes */}
             <div className="my-4 grid grid-cols-8">
                 <div className="col-span-1 border-b-2 p-2 font-bold">
                     Client
