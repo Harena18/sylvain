@@ -121,11 +121,249 @@ function Personalization() {
             ? editBuffer[id][field]
             : fallback) ?? "";
 
+    const [clients, setClients] = useState([]);
+
+    useEffect(() => {
+        (async () => {
+            try {
+                const response = await fetch(
+                    "http://localhost/backend/clients/clients.php"
+                );
+                const data = await response.json();
+                console.log(data.clients);
+
+                setClients(data.clients);
+            } catch (err) {
+                console.error(err);
+            }
+        })();
+    }, []);
+
+    const [foundClient, setFoundClient] = useState({
+        lastname: "",
+        firstname: "",
+    });
+
+    const currentClient = (e) => {
+        setFoundClient({
+            ...foundClient,
+            lastname: "",
+            firstname: "",
+        });
+        const clientID = parseInt(e.target.value);
+        const client = clients.find((u) => u.id === clientID);
+
+        if (!client) return;
+
+        setFoundClient({
+            ...foundClient,
+            lastname: client.lastname,
+            firstname: client.firstname,
+        });
+    };
+
+    // Fetch de tous les objets
+    const [clothes, setClothes] = useState([]);
+    const [display, setDisplay] = useState([]);
+    const [tarpaulin, setTarpaulin] = useState([]);
+
+    const [foundItem, setFoundItem] = useState({
+        name: "",
+    });
+
+    const fetchAll = async () => {
+        try {
+            const response = await fetch(
+                "http://localhost/backend/items/items.php"
+            );
+            const data = await response.json();
+            setClothes(data.clothes || []);
+            setDisplay(data.display || []);
+            setTarpaulin(data.tarpaulin || []);
+        } catch (err) {
+            console.error(err);
+        }
+    };
+    useEffect(() => {
+        fetchAll();
+    }, []);
+
+    const currentItem = (e) => {
+        setFoundItem({
+            name: null,
+            size: null,
+            length: null,
+            width: null,
+            format: null,
+        });
+        const id = parseInt(e.target.value);
+        const item =
+            clothes.find((c) => c.id === id) ||
+            tarpaulin.find((t) => t.id === id) ||
+            display.find((d) => d.id === id);
+
+        if (!item) return;
+
+        const selectedItem = {
+            name: item.name,
+            size: item.size || "",
+            length: item.length || "",
+            width: item.width || "",
+            format: item.format || "",
+        };
+
+        setFoundItem(selectedItem);
+    };
+
     return (
         <div className="p-4">
             <h2 className="text-center font-bold text-2xl">
                 Personnalisations
             </h2>
+
+            <div className="mt-3 border rounded-2xl py-10 px-5">
+                <h3 className="font-bold text-lg">Nouvelle personnalisation</h3>
+                <form
+                    onSubmit={handleSubmit}
+                    className="flex flex-col gap-2 mt-2"
+                >
+                    <input
+                        type="number"
+                        placeholder="ID Client"
+                        value={newPerso.client_id}
+                        onChange={(e) => {
+                            setNewPerso({
+                                ...newPerso,
+                                client_id: e.target.value,
+                            });
+                            currentClient(e);
+                        }}
+                        required
+                        className="p-2"
+                    />
+                    <input
+                        type="number"
+                        placeholder="ID Objet"
+                        value={newPerso.item_id}
+                        onChange={(e) => {
+                            setNewPerso({
+                                ...newPerso,
+                                item_id: e.target.value,
+                            });
+                            currentItem(e);
+                        }}
+                        required
+                        className="p-2"
+                    />
+                    <input
+                        type="text"
+                        placeholder="Motif"
+                        value={newPerso.motif}
+                        onChange={(e) =>
+                            setNewPerso({
+                                ...newPerso,
+                                motif: e.target.value,
+                            })
+                        }
+                        required
+                        className="p-2"
+                    />
+                    <div className="font-bold">Date de fin</div>
+                    <input
+                        type="date"
+                        value={newPerso.date_fin}
+                        onChange={(e) =>
+                            setNewPerso({
+                                ...newPerso,
+                                date_fin: e.target.value,
+                            })
+                        }
+                        className="p-2"
+                    />
+                    <input
+                        type="number"
+                        placeholder="Nombre d'exemplaires"
+                        value={newPerso.nombre_exemplaires}
+                        onChange={(e) =>
+                            setNewPerso({
+                                ...newPerso,
+                                nombre_exemplaires: e.target.value,
+                            })
+                        }
+                        className="p-2"
+                    />
+
+                    <div className="font-bold">Statut</div>
+                    <select
+                        value={newPerso.statut}
+                        onChange={(e) =>
+                            setNewPerso({
+                                ...newPerso,
+                                statut: e.target.value,
+                            })
+                        }
+                        className="p-2 mb-5"
+                    >
+                        <option value="en cours" className="text-black">
+                            En cours
+                        </option>
+                        <option value="terminé" className="text-black">
+                            Terminé
+                        </option>
+                        <option value="en retard" className="text-black">
+                            En retard
+                        </option>
+                        <option value="récupéré" className="text-black">
+                            Récupéré
+                        </option>
+                        <option value="livré" className="text-black">
+                            Livré
+                        </option>
+                    </select>
+                    <button
+                        type="submit"
+                        className="bg-green-600 text-white p-2 rounded font-bold"
+                    >
+                        Ajouter
+                    </button>
+                </form>
+            </div>
+            <div className="p-5">
+                {foundClient.lastname && foundClient.firstname ? (
+                    <span className="font-bold col-span-1">
+                        Nom du client :{" "}
+                    </span>
+                ) : null}
+                {foundClient.lastname} {foundClient.firstname} <br />
+                {foundItem.name ? (
+                    <span className="font-bold col-span-1">Désignation : </span>
+                ) : null}
+                <span className="col-span-3">
+                    {foundItem.name}
+                    {foundItem.name ? <br /> : null}
+                    {foundItem.size ? (
+                        <span className="font-bold col-span-1">Taille : </span>
+                    ) : null}
+                    {foundItem.size}
+                    {foundItem.size ? <br /> : null}
+                    {foundItem.length ? (
+                        <span className="font-bold col-span-1">
+                            Longueur :{" "}
+                        </span>
+                    ) : null}
+                    {foundItem.length}
+                    {foundItem.length ? <br /> : null}
+                    {foundItem.width ? (
+                        <span className="font-bold col-span-1">Largeur : </span>
+                    ) : null}
+                    {foundItem.width}
+                    {foundItem.width ? <br /> : null}
+                    {foundItem.format ? (
+                        <span className="font-bold col-span-1">Format : </span>
+                    ) : null}
+                    {foundItem.format}
+                </span>
+            </div>
 
             <div className="my-4 grid grid-cols-8">
                 <div className="col-span-1 border-b-2 p-2 font-bold">
@@ -163,9 +401,9 @@ function Personalization() {
                                 className="p-1 border rounded w-full"
                                 type="text"
                                 value={getBuffered(p.id, "motif", p.motif)}
-                                onChange={(e) =>
-                                    setEditField(p.id, "motif", e.target.value)
-                                }
+                                onChange={(e) => {
+                                    setEditField(p.id, "motif", e.target.value);
+                                }}
                             />
                         </div>
 
@@ -259,106 +497,6 @@ function Personalization() {
                         </div>
                     </React.Fragment>
                 ))}
-            </div>
-
-            <div className="mt-30 border rounded-2xl py-10 px-5">
-                <h3 className="font-bold text-lg">Nouvelle personnalisation</h3>
-                <form
-                    onSubmit={handleSubmit}
-                    className="flex flex-col gap-2 mt-2"
-                >
-                    <input
-                        type="number"
-                        placeholder="ID Client"
-                        value={newPerso.client_id}
-                        onChange={(e) =>
-                            setNewPerso({
-                                ...newPerso,
-                                client_id: e.target.value,
-                            })
-                        }
-                        required
-                        className="p-2"
-                    />
-                    <input
-                        type="number"
-                        placeholder="ID Objet"
-                        value={newPerso.item_id}
-                        onChange={(e) =>
-                            setNewPerso({
-                                ...newPerso,
-                                item_id: e.target.value,
-                            })
-                        }
-                        required
-                        className="p-2"
-                    />
-                    <input
-                        type="text"
-                        placeholder="Motif"
-                        value={newPerso.motif}
-                        onChange={(e) =>
-                            setNewPerso({ ...newPerso, motif: e.target.value })
-                        }
-                        required
-                        className="p-2"
-                    />
-                    <div className="font-bold">Date de fin</div>
-                    <input
-                        type="date"
-                        value={newPerso.date_fin}
-                        onChange={(e) =>
-                            setNewPerso({
-                                ...newPerso,
-                                date_fin: e.target.value,
-                            })
-                        }
-                        className="p-2"
-                    />
-                    <input
-                        type="number"
-                        placeholder="Nombre d'exemplaires"
-                        value={newPerso.nombre_exemplaires}
-                        onChange={(e) =>
-                            setNewPerso({
-                                ...newPerso,
-                                nombre_exemplaires: e.target.value,
-                            })
-                        }
-                        className="p-2"
-                    />
-
-                    <div className="font-bold">Statut</div>
-                    <select
-                        value={newPerso.statut}
-                        onChange={(e) =>
-                            setNewPerso({ ...newPerso, statut: e.target.value })
-                        }
-                        className="p-2 mb-5"
-                    >
-                        <option value="en cours" className="text-black">
-                            En cours
-                        </option>
-                        <option value="terminé" className="text-black">
-                            Terminé
-                        </option>
-                        <option value="en retard" className="text-black">
-                            En retard
-                        </option>
-                        <option value="récupéré" className="text-black">
-                            Récupéré
-                        </option>
-                        <option value="livré" className="text-black">
-                            Livré
-                        </option>
-                    </select>
-                    <button
-                        type="submit"
-                        className="bg-green-600 text-white p-2 rounded font-bold"
-                    >
-                        Ajouter
-                    </button>
-                </form>
             </div>
         </div>
     );
